@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Saraban Tools",
+  "version": "1.0.0",
+  "description": "เครื่องมือปิดงานอัตโนมัติ สำหรับ edoc.nbtc.go.th",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Saraban Tools"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
