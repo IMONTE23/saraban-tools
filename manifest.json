@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Saraban Tools",
   "version": "1.0.0",
-  "description": "เครื่องมือปิดงานอัตโนมัติ สำหรับ edoc.nbtc.go.th",
+  "description": "เครื่องมือปิดงานอัตโนมัติ สำหรับระบบสารบรรณอิเล็กทรอนิกส์",
   "permissions": [
     "activeTab",
     "scripting",
