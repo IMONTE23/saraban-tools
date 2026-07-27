@@ -55,6 +55,55 @@
       color: #86efac;
     }
 
+    /* ── Tab bar ── */
+    .tab-bar {
+      display: flex;
+      background: #0f172a;
+      border-bottom: 1px solid #1e3a5f;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: transparent;
+      border-radius: 2px 2px 0 0;
+      transition: background 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #e2e8f0;
+      background: rgba(59,130,246,0.08);
+    }
+
+    .tab-btn.active::after {
+      background: #3b82f6;
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: #94a3b8;
+      background: rgba(255,255,255,0.03);
+    }
+
     /* ── Settings panel ── */
     .panel {
       background: #1e293b;
@@ -96,22 +145,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    select {
-      padding: 5px 8px;
-      border: 1.5px solid #334155;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #e2e8f0;
-      background: #0f172a;
-      outline: none;
-      transition: border-color 0.15s;
-      cursor: pointer;
-    }
-    select:focus {
-      border-color: #3b82f6;
     }
 
     input[type="number"] {
@@ -321,23 +354,18 @@
   <div class="status-pill" id="status-pill">Idle</div>
 </div>
 
+<!-- Tab Bar: ขั้นตอนการทำงาน -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-edit" data-value="edit">✏️ รอลงทะเบียน</button>
+  <button class="tab-btn" id="tab-clock" data-value="clock">⏱️ ระหว่างดำเนินการ</button>
+</div>
+<!-- hidden input เก็บค่า trigger mode -->
+<input type="hidden" id="auto-trigger" value="edit">
+
 <!-- Settings -->
 <div class="panel">
   <div class="panel-title">ตั้งค่า</div>
 
-  <!-- ปุ่มเปิดงาน (Trigger) Selector -->
-  <div class="setting-row">
-    <div class="setting-label">
-      ขั้นตอนการทำงาน
-      <small>เลือกสถานะที่ต้องการเข้าไปปิดงาน</small>
-    </div>
-    <div class="setting-right">
-      <select id="auto-trigger">
-        <option value="clock">⏱️ ระหว่างดำเนินการ</option>
-        <option value="edit">✏️ รอลงทะเบียน</option>
-      </select>
-    </div>
-  </div>
 
   <div class="setting-row">
     <div class="setting-label">

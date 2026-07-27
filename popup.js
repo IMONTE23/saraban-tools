@@ -3,7 +3,8 @@
 // ── DOM refs ──────────────────────────────────────────────
 const btnStart      = document.getElementById('btn-start');
 const btnStop       = document.getElementById('btn-stop');
-const autoTrigger   = document.getElementById('auto-trigger');
+const autoTrigger   = document.getElementById('auto-trigger'); // hidden input
+const tabButtons    = document.querySelectorAll('.tab-btn');
 const inputRows     = document.getElementById('input-rows');
 const chkAll        = document.getElementById('chk-all');
 const inputDelay    = document.getElementById('input-delay');
@@ -22,13 +23,22 @@ let logEntries = 0;
 // ── Init ──────────────────────────────────────────────────
 loadSettings();
 
+// ── Tab bar logic ─────────────────────────────────────────
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    autoTrigger.value = btn.dataset.value;
+    saveSettings();
+  });
+});
+
 // ── Settings listeners ────────────────────────────────────
 chkAll.addEventListener('change', () => {
   inputRows.disabled = chkAll.checked;
   saveSettings();
 });
 
-autoTrigger.addEventListener('change', saveSettings);
 inputRows.addEventListener('change', saveSettings);
 inputDelay.addEventListener('change', saveSettings);
 
@@ -156,7 +166,13 @@ function saveSettings() {
 
 function loadSettings() {
   chrome.storage.local.get(['sarabanAutoTrigger', 'sarabanAutoRows', 'sarabanAutoDelay', 'sarabanAutoAll'], (data) => {
-    if (data.sarabanAutoTrigger) autoTrigger.value = data.sarabanAutoTrigger;
+    if (data.sarabanAutoTrigger) {
+      autoTrigger.value = data.sarabanAutoTrigger;
+      // sync tab UI
+      tabButtons.forEach(b => {
+        b.classList.toggle('active', b.dataset.value === data.sarabanAutoTrigger);
+      });
+    }
     if (data.sarabanAutoRows)  inputRows.value     = data.sarabanAutoRows;
     if (data.sarabanAutoDelay) inputDelay.value    = data.sarabanAutoDelay;
     if (data.sarabanAutoAll)   chkAll.checked      = data.sarabanAutoAll;
