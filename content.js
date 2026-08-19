@@ -29,34 +29,33 @@ if (!window.__sarabanToolsLoaded) {
         return isVisible(el) && arr.indexOf(el) === idx;
       });
     } else {
-      // โหมดรอลงทะเบียน: ซองจดหมาย (คอลัมน์ 2)
-      const envelopeSelectors = [
-        'table tbody tr td:nth-child(2) i[class*="fa-envelope"]',
+      // โหมดรอลงทะเบียน: ปุ่มแก้ไข (button.btn-success > i.fa-edit / i.fa.fa-edit)
+      const editSelectors = [
+        'button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit',
+        'button.btn.btn-sm.btn-success > i.fa.fa-edit',
+        'button.btn.btn-sm.btn-success > i.fa-edit',
+        'button.btn-success i.fa.fa-edit',
+        'button.btn-success i.fa-edit',
+        'button.btn-success [class*="fa-edit"]',
+        'tr td button.btn-success i',
+        'tr td div.btn-group button i.fa-edit',
+        'tr td div.btn-group button i.fa.fa-edit',
+        'tr td button i.fa-edit',
+        'tr td button i.fa.fa-edit',
+        'tr td a i.fa-edit',
+        'tr td a i.fa.fa-edit',
+        'tr td i.fa-edit',
+        'tr td i.fa.fa-edit',
+        'tr td [class*="fa-edit"]',
+        // Fallback: ซองจดหมาย
         'tr td:nth-child(2) i[class*="fa-envelope"]',
-        'tr td:nth-child(2) span i.fa-envelope',
-        'tr td:nth-child(2) span i.fa-envelope-open-o',
-        'tr td:nth-child(2) span i.fa-envelope-o',
-        'tr td:nth-child(2) span i.fa-envelope-open',
-        'tr td:nth-child(2) i.text-info',
-        'td:nth-child(2) i[class*="fa-envelope"]',
-        'td:nth-child(2) span > i',
-        'td:nth-child(2) .text-info'
+        'td:nth-child(2) i[class*="fa-envelope"]'
       ];
-      let elements = Array.from(document.querySelectorAll(envelopeSelectors.join(', ')))
+
+      const elements = Array.from(document.querySelectorAll(editSelectors.join(', ')))
         .filter((el, idx, arr) => {
           return isVisible(el) && arr.indexOf(el) === idx;
         });
-
-      // Fallback: ปุ่มแก้ไขเดิม (คอลัมน์ 10 หรือ dropdown/btn-group) หากยังเป็นระบบแบบเก่า
-      if (elements.length === 0) {
-        const buttons = Array.from(document.querySelectorAll(
-          'tr td div.btn-group button, tr td button, tr td a.btn, tr[role="row"] td div.btn-group button'
-        ));
-        elements = buttons.filter((btn, idx, arr) => {
-          const icon = btn.querySelector('i.fa-edit, i.fa.fa-edit, .fa-edit, [class*="fa-edit"]');
-          return icon && isVisible(btn) && arr.indexOf(btn) === idx;
-        });
-      }
 
       return elements;
     }
@@ -109,26 +108,6 @@ if (!window.__sarabanToolsLoaded) {
     return byText || null;
   }
 
-  function waitForReceiveDoc(timeout = 4000) {
-    const direct = findReceiveDocButton();
-    if (direct) return Promise.resolve(direct);
-
-    return new Promise((resolve) => {
-      const obs = new MutationObserver(() => {
-        const found = findReceiveDocButton();
-        if (found) {
-          obs.disconnect();
-          resolve(found);
-        }
-      });
-      obs.observe(document.body, { childList: true, subtree: true, attributes: true });
-      setTimeout(() => {
-        obs.disconnect();
-        resolve(findReceiveDocButton());
-      }, timeout);
-    });
-  }
-
   function findPidNganLabel() {
     return Array.from(document.querySelectorAll('label, span, div'))
       .find(l => {
@@ -161,7 +140,7 @@ if (!window.__sarabanToolsLoaded) {
 
     let triggers = findTriggers(triggerMode);
     if (triggers.length === 0) {
-      const btnName = triggerMode === 'clock' ? 'ระหว่างดำเนินการ (ปุ่มนาฬิกา)' : 'รอลงทะเบียน (ปุ่มจดหมาย/รับต้นฉบับ)';
+      const btnName = triggerMode === 'clock' ? 'ระหว่างดำเนินการ (ปุ่มนาฬิกา)' : 'รอลงทะเบียน (ปุ่มแก้ไข)';
       chrome.runtime.sendMessage({
         action: 'error',
         message: `ไม่พบปุ่ม ${btnName} ในหน้านี้ — กรุณาตรวจสอบว่าเปิดหน้าตารางอยู่`
@@ -198,19 +177,25 @@ if (!window.__sarabanToolsLoaded) {
 
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
       await sleep(200);
-      el.click();
 
-      // สำหรับโหมดรอลงทะเบียน: ตรวจสอบและกดปุ่ม "รับต้นฉบับ" (ถ้ามี)
-      if (triggerMode !== 'clock') {
-        const recvBtn = await waitForReceiveDoc(3500);
-        if (recvBtn) {
-          await sleep(150);
-          recvBtn.click();
-        }
+      // คลิกปุ่ม/ไอคอน
+      const clickable = el.closest('button, a') || el;
+      clickable.click();
+      if (el !== clickable) {
+        try { el.click(); } catch (_) { }
       }
 
       // รอ checkbox หรือ label ปิดงาน ใน modal
       let checkbox = await waitForElement('#basic_checkbox_1', 5000);
+      if (!checkbox) {
+        // เผื่อเป็น flow ที่ต้องกดรับต้นฉบับก่อน
+        const recvBtn = findReceiveDocButton();
+        if (recvBtn) {
+          recvBtn.click();
+          checkbox = await waitForElement('#basic_checkbox_1', 4000);
+        }
+      }
+
       if (!checkbox) {
         const label = findPidNganLabel();
         if (!label) {
