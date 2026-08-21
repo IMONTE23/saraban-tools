@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-08-21T07:44:15.225Z",
+  "total_events": 3,
+  "summary": {
+    "navigate": 0,
+    "click": 3,
+    "input": 0
+  },
+  "events": [
+    {
+      "ariaLabel": null,
+      "id": null,
+      "name": null,
+      "role": null,
+      "selector": "td:nth-of-type(3) > i.fa.fa-clock-o",
+      "tabId": 616564564,
+      "tag": "i",
+      "text": "",
+      "time": 1537,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:01"
+    },
+    {
+      "ariaLabel": null,
+      "id": null,
+      "name": null,
+      "role": null,
+      "selector": "div.col-sm-4:nth-of-type(1) > label",
+      "tabId": 616564564,
+      "tag": "label",
+      "text": "ปิดงาน",
+      "time": 8358,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:08"
+    },
+    {
+      "ariaLabel": null,
+      "id": "basic_checkbox_1",
+      "name": null,
+      "role": null,
+      "selector": "#basic_checkbox_1",
+      "tabId": 616564564,
+      "tag": "input",
+      "text": "",
+      "time": 8359,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:08"
+    }
+  ]
+}
