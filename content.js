@@ -164,6 +164,29 @@ if (!window.__sarabanToolsLoaded) {
     return byId || null;
   }
 
+  async function waitForLoadingToFinish(timeout = 5000) {
+    const loaderSelectors = [
+      '.blockUI', '.loading', '.loading-spinner', '.pace', '.overlay',
+      'div[class*="loading"]', 'div[class*="spinner"]', 'div[class*="backdrop"]'
+    ];
+    const hasLoader = () => loaderSelectors.some(sel => {
+      const el = document.querySelector(sel);
+      return isVisible(el);
+    });
+
+    if (!hasLoader()) return;
+
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const interval = setInterval(() => {
+        if (!hasLoader() || Date.now() - start > timeout) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 200);
+    });
+  }
+
   async function runAuto(maxRows, delayMs, triggerMode) {
     stopAutoFlag = false;
 
@@ -195,6 +218,9 @@ if (!window.__sarabanToolsLoaded) {
     for (let i = 0; i < limit; i++) {
       if (stopAutoFlag) break;
 
+      // รอให้หน้าเว็บโหลดเสร็จก่อนเริ่มแถวใหม่
+      await waitForLoadingToFinish(4000);
+
       const currentItems = findRowTriggers(triggerMode);
       if (currentItems.length === 0) {
         chrome.runtime.sendMessage({
@@ -209,7 +235,7 @@ if (!window.__sarabanToolsLoaded) {
       const triggerEl = item.trigger;
 
       triggerEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      await sleep(350);
+      await sleep(500);
 
       // 1. คลิกปุ่มแก้ไข / นาฬิกาในตาราง
       const clickable = triggerEl.closest('button, a') || triggerEl;
@@ -218,11 +244,14 @@ if (!window.__sarabanToolsLoaded) {
         try { triggerEl.click(); } catch (_) { }
       }
 
-      // 2. รอให้ Modal โหลดขึ้นมา
-      let readyEl = await waitForElement('div.col-sm-4 > label, #basic_checkbox_1', 8000);
+      // 2. รอให้ Modal โหลดขึ้นมา (ให้เวลารอนานขึ้นสูงสุด 12 วินาที)
+      let readyEl = await waitForElement('div.col-sm-4 > label, #basic_checkbox_1', 12000);
 
-      // หน่วงเวลา 1500ms เพื่อให้ระบบสารบรรณโหลดข้อมูลและออกเลข/เตรียมสถานะใน Modal ให้พร้อมสมบูรณ์
-      await sleep(1500);
+      // รอให้โหลด Overlay / Spinner ใน Modal เสร็จ
+      await waitForLoadingToFinish(5000);
+
+      // หน่วงเวลา 2500ms (2.5 วินาที) เพื่อให้ระบบสารบรรณโหลดข้อมูลและเตรียมสถานะใน Modal ให้พร้อมสมบูรณ์
+      await sleep(2500);
 
       const label = findPidNganLabel();
       const checkbox = findCheckbox();
@@ -239,9 +268,9 @@ if (!window.__sarabanToolsLoaded) {
       // 3. คลิกที่ Label "ปิดงาน"
       if (label) {
         label.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        await sleep(300);
-        label.click();
         await sleep(400);
+        label.click();
+        await sleep(600);
       }
 
       // 4. ตรวจสอบ Checkbox #basic_checkbox_1
@@ -250,7 +279,7 @@ if (!window.__sarabanToolsLoaded) {
         targetCheckbox.click();
         targetCheckbox.checked = true;
         targetCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-        await sleep(300);
+        await sleep(500);
       }
 
       if (rowEl && rowEl.dataset) {
@@ -263,11 +292,12 @@ if (!window.__sarabanToolsLoaded) {
         message: `ปิดงานแถวที่ ${i + 1} เรียบร้อย`
       }).catch(() => { });
 
-      // 5. รอระบบประมวลผลบันทึกและ Modal ปิดลงอัตโนมัติ
-      await waitForGone('#basic_checkbox_1', 5000);
-      await sleep(600);
+      // 5. รอระบบประมวลผลบันทึกและ Modal ปิดลงอัตโนมัติ (รอนานขึ้นสูงสุด 7 วินาที)
+      await waitForGone('#basic_checkbox_1', 7000);
+      await waitForLoadingToFinish(4000);
+      await sleep(1000);
 
-      if (i < limit - 1 && !stopAutoFlag) await sleep(delayMs);
+      if (i < limit - 1 && !stopAutoFlag) await sleep(Math.max(delayMs, 1000));
     }
 
     chrome.runtime.sendMessage({
