@@ -29,22 +29,18 @@ if (!window.__sarabanToolsLoaded) {
           '[class*="fa-clock"]'
         ].join(', '));
       } else {
-        // โหมดรอลงทะเบียน: ตาม r.json
-        // tr.odd:nth-of-type(1) > td:nth-of-type(10) > div.btn-group > button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit
+        // โหมดรอลงทะเบียน: รองรับปุ่ม <button onclick="recvdoc(...)" title="รับต้นฉบับและดำเนินการต่อ" class="btn btn-sm btn-success"><i class="fa fa-edit"></i></button>
         trigger = tr.querySelector([
-          'td:nth-of-type(10) div.btn-group button.btn-success:nth-of-type(2) i',
-          'td:nth-of-type(10) div.btn-group button.btn-success:nth-of-type(2)',
-          'td:nth-of-type(10) div.btn-group button.btn-success i.fa-edit',
-          'td:nth-of-type(10) div.btn-group button.btn-success i.fa.fa-edit',
-          'td:nth-of-type(10) div.btn-group button.btn-success',
-          'td:nth-of-type(10) button.btn-success i',
-          'td:nth-of-type(10) button.btn-success',
-          'button.btn-sm.btn-success:nth-of-type(2) i',
-          'button.btn-sm.btn-success:nth-of-type(2)',
+          'button[onclick*="recvdoc"]',
+          '[onclick*="recvdoc"]',
+          'button[title*="รับต้นฉบับ"]',
+          'button[title*="ดำเนินการต่อ"]',
           'button.btn-success i.fa-edit',
           'button.btn-success i.fa.fa-edit',
           'button.btn-success [class*="fa-edit"]',
           'button.btn-success',
+          'div.btn-group button.btn-success',
+          'td:nth-of-type(10) button',
           'i.fa-edit',
           'i.fa.fa-edit',
           'td:nth-child(2) i[class*="fa-envelope"]',
@@ -53,7 +49,7 @@ if (!window.__sarabanToolsLoaded) {
       }
 
       if (trigger && isVisible(trigger)) {
-        items.push({ row: tr, trigger: trigger });
+        items.push({ row: tr, trigger: trigger.closest('button, a') || trigger });
       }
     }
 
@@ -64,8 +60,10 @@ if (!window.__sarabanToolsLoaded) {
         elements = Array.from(document.querySelectorAll('i.fa-clock-o, [class*="fa-clock"]'));
       } else {
         elements = Array.from(document.querySelectorAll([
-          'button.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit',
-          'button.btn-sm.btn-success:nth-of-type(2)',
+          'button[onclick*="recvdoc"]',
+          '[onclick*="recvdoc"]',
+          'button[title*="รับต้นฉบับ"]',
+          'button[title*="ดำเนินการต่อ"]',
           'button.btn-success i.fa-edit',
           'button.btn-success i.fa.fa-edit',
           'button.btn-success [class*="fa-edit"]',
@@ -77,7 +75,7 @@ if (!window.__sarabanToolsLoaded) {
       }
       for (const el of elements) {
         if (isVisible(el) && !el.closest('[data-saraban-done="true"]')) {
-          items.push({ row: el.closest('tr') || el, trigger: el });
+          items.push({ row: el.closest('tr') || el, trigger: el.closest('button, a') || el });
         }
       }
     }
@@ -85,7 +83,7 @@ if (!window.__sarabanToolsLoaded) {
     return items;
   }
 
-  function waitForElement(selector, timeout = 6000) {
+  function waitForElement(selector, timeout = 7000) {
     return new Promise((resolve) => {
       const el = document.querySelector(selector);
       if (isVisible(el)) { resolve(el); return; }
@@ -120,18 +118,6 @@ if (!window.__sarabanToolsLoaded) {
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  function findReceiveDocButton() {
-    const btn = document.querySelector('#btn-receivedoc, .recvdoc, button#btn-receivedoc, span.recvdoc');
-    if (isVisible(btn)) return btn;
-
-    const byText = Array.from(document.querySelectorAll('button, span, a, div'))
-      .find(el => {
-        const text = el.textContent.trim();
-        return (text === 'รับต้นฉบับ' || text.includes('รับต้นฉบับ')) && isVisible(el);
-      });
-    return byText || null;
-  }
-
   function findPidNganLabel() {
     // 1. Selector ตรงตาม r.json: div.col-sm-4:nth-of-type(1) > label
     const specific = document.querySelector('div.col-sm-4:nth-of-type(1) > label, div.col-sm-4 > label');
@@ -139,14 +125,18 @@ if (!window.__sarabanToolsLoaded) {
       return specific;
     }
 
-    // 2. ค้นหา label ที่มีข้อความ "ปิดงาน"
+    // 2. label[for="basic_checkbox_1"]
+    const forCb = document.querySelector('label[for="basic_checkbox_1"]');
+    if (forCb && isVisible(forCb)) return forCb;
+
+    // 3. ค้นหา label ที่มีข้อความ "ปิดงาน"
     const labels = Array.from(document.querySelectorAll('label')).filter(isVisible);
     const exact = labels.find(l => l.textContent.trim() === 'ปิดงาน');
     if (exact) return exact;
     const partial = labels.find(l => l.textContent.includes('ปิดงาน'));
     if (partial) return partial;
 
-    // 3. Fallback หาจาก span, div, a, button
+    // 4. Fallback หาจาก span, div, a, button
     return Array.from(document.querySelectorAll('span, div, a, button'))
       .find(l => {
         const text = l.textContent.trim();
@@ -165,14 +155,6 @@ if (!window.__sarabanToolsLoaded) {
     return byId || null;
   }
 
-  function closeModal() {
-    const btn = document.querySelector(
-      '.modal.in button.close, .modal.show button.close, [data-dismiss="modal"], button.bootbox-close-button'
-    );
-    if (isVisible(btn)) { btn.click(); return; }
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
-  }
-
   async function runAuto(maxRows, delayMs, triggerMode) {
     stopAutoFlag = false;
 
@@ -183,7 +165,7 @@ if (!window.__sarabanToolsLoaded) {
 
     const initialItems = findRowTriggers(triggerMode);
     if (initialItems.length === 0) {
-      const btnName = triggerMode === 'clock' ? 'ระหว่างดำเนินการ (ปุ่มนาฬิกา)' : 'รอลงทะเบียน (ปุ่มแก้ไข)';
+      const btnName = triggerMode === 'clock' ? 'ระหว่างดำเนินการ (ปุ่มนาฬิกา)' : 'รอลงทะเบียน (ปุ่มรับต้นฉบับ/แก้ไข)';
       chrome.runtime.sendMessage({
         action: 'error',
         message: `ไม่พบปุ่ม ${btnName} ในหน้านี้ — กรุณาตรวจสอบว่าเปิดหน้าตารางอยู่`
@@ -218,26 +200,14 @@ if (!window.__sarabanToolsLoaded) {
       const triggerEl = item.trigger;
 
       triggerEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      await sleep(200);
+      await sleep(150);
 
-      // คลิกปุ่ม/ไอคอน (ตาม r.json: tr > td:nth-of-type(10) > div.btn-group > button.btn-success:nth-of-type(2) > i.fa-edit)
+      // 1. คลิกปุ่มแก้ไข / รับต้นฉบับ (button[onclick*="recvdoc"])
       const clickable = triggerEl.closest('button, a') || triggerEl;
       clickable.click();
-      if (triggerEl !== clickable) {
-        try { triggerEl.click(); } catch (_) { }
-      }
 
-      // รอ checkbox หรือ label ปิดงาน ใน modal (ตาม r.json: div.col-sm-4:nth-of-type(1) > label / #basic_checkbox_1)
-      let readyEl = await waitForElement('#basic_checkbox_1, div.col-sm-4 > label', 6000);
-      if (!readyEl) {
-        // เผื่อเป็น flow ที่ต้องกดรับต้นฉบับก่อน
-        const recvBtn = findReceiveDocButton();
-        if (recvBtn) {
-          recvBtn.click();
-          await sleep(300);
-          readyEl = await waitForElement('#basic_checkbox_1, div.col-sm-4 > label', 4000);
-        }
-      }
+      // 2. รอให้หน้าต่างโหลดและพบ Label "ปิดงาน" หรือ Checkbox #basic_checkbox_1
+      let readyEl = await waitForElement('#basic_checkbox_1, div.col-sm-4 > label, label[for="basic_checkbox_1"]', 7000);
 
       const label = findPidNganLabel();
       const checkbox = findCheckbox();
@@ -253,14 +223,16 @@ if (!window.__sarabanToolsLoaded) {
 
       await sleep(200);
 
-      // คลิก label "ปิดงาน" (ตาม r.json: div.col-sm-4:nth-of-type(1) > label)
+      // 3. คลิกที่ Label "ปิดงาน" หรือ Checkbox
       if (label) {
         label.scrollIntoView({ block: 'center', behavior: 'smooth' });
         label.click();
-        await sleep(150);
+      } else if (checkbox && !checkbox.checked) {
+        checkbox.click();
       }
 
-      // ตรวจสอบ checkbox ว่าถูกติ๊กแล้วหรือไม่ ถ้ายังให้ติ๊กโดยตรง (ตาม r.json: #basic_checkbox_1)
+      // ถ้า Checkbox ยังไม่ได้ถูกติ๊ก ให้ติ๊กและส่ง change event
+      await sleep(100);
       const targetCheckbox = findCheckbox();
       if (targetCheckbox && !targetCheckbox.checked) {
         targetCheckbox.click();
@@ -278,16 +250,9 @@ if (!window.__sarabanToolsLoaded) {
         message: `ปิดงานแถวที่ ${i + 1} เรียบร้อย`
       }).catch(() => { });
 
-      // รอ modal ปิดลงอัตโนมัติหลังบันทึก
+      // 4. รอระบบประมวลผลบันทึกและ Modal ปิดลงอัตโนมัติ
       await waitForGone('#basic_checkbox_1', 4000);
       await sleep(300);
-
-      // ตรวจสอบว่า modal ยังค้างอยู่หรือไม่ ถ้ายังค้างค่อยปิด
-      const stillOpen = document.querySelector('#basic_checkbox_1');
-      if (isVisible(stillOpen)) {
-        closeModal();
-        await waitForGone('#basic_checkbox_1', 2000);
-      }
 
       if (i < limit - 1 && !stopAutoFlag) await sleep(delayMs);
     }
