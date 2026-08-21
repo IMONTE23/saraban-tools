@@ -10,58 +10,82 @@ if (!window.__sarabanToolsLoaded) {
   }
 
   // ============================================================
-  // ค้นหา trigger elements ตามโหมดที่ระบุ
+  // ค้นหาแถวและ trigger elements ตามโหมดที่ระบุ
   // ============================================================
-  function findTriggers(triggerMode) {
-    if (triggerMode === 'clock') {
-      // ปุ่มนาฬิกา (คอลัมน์ 3)
-      const selectors = [
-        'table tbody tr td:nth-child(3) i.fa-clock-o',
-        'table tbody tr td:nth-child(3) i.fa.fa-clock-o',
-        'tr td:nth-child(3) i.fa-clock-o',
-        'tr td:nth-child(3) i.fa.fa-clock-o',
-        'tr td:nth-child(3) [class*="fa-clock"]',
-        'td:nth-child(3) i.fa-clock-o',
-        'td:nth-child(3) .fa-clock-o'
-      ];
-      const elements = Array.from(document.querySelectorAll(selectors.join(', ')));
-      return elements.filter((el, idx, arr) => {
-        return isVisible(el) && arr.indexOf(el) === idx;
-      });
-    } else {
-      // โหมดรอลงทะเบียน: ปุ่มแก้ไข (button.btn-success > i.fa-edit / i.fa.fa-edit)
-      const editSelectors = [
-        'button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit',
-        'button.btn.btn-sm.btn-success > i.fa.fa-edit',
-        'button.btn.btn-sm.btn-success > i.fa-edit',
-        'button.btn-success i.fa.fa-edit',
-        'button.btn-success i.fa-edit',
-        'button.btn-success [class*="fa-edit"]',
-        'tr td button.btn-success i',
-        'tr td div.btn-group button i.fa-edit',
-        'tr td div.btn-group button i.fa.fa-edit',
-        'tr td button i.fa-edit',
-        'tr td button i.fa.fa-edit',
-        'tr td a i.fa-edit',
-        'tr td a i.fa.fa-edit',
-        'tr td i.fa-edit',
-        'tr td i.fa.fa-edit',
-        'tr td [class*="fa-edit"]',
-        // Fallback: ซองจดหมาย
-        'tr td:nth-child(2) i[class*="fa-envelope"]',
-        'td:nth-child(2) i[class*="fa-envelope"]'
-      ];
+  function findRowTriggers(triggerMode) {
+    const rows = Array.from(document.querySelectorAll('table tbody tr, table tr'))
+      .filter(tr => isVisible(tr) && !tr.dataset.sarabanDone && tr.querySelectorAll('td').length > 1);
 
-      const elements = Array.from(document.querySelectorAll(editSelectors.join(', ')))
-        .filter((el, idx, arr) => {
-          return isVisible(el) && arr.indexOf(el) === idx;
-        });
+    const items = [];
+    for (const tr of rows) {
+      let trigger = null;
+      if (triggerMode === 'clock') {
+        trigger = tr.querySelector([
+          'td:nth-child(3) i.fa-clock-o',
+          'td:nth-child(3) i.fa.fa-clock-o',
+          'td:nth-child(3) [class*="fa-clock"]',
+          'i.fa-clock-o',
+          'i.fa.fa-clock-o',
+          '[class*="fa-clock"]'
+        ].join(', '));
+      } else {
+        // โหมดรอลงทะเบียน: ตาม r.json
+        // tr.odd:nth-of-type(1) > td:nth-of-type(10) > div.btn-group > button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit
+        trigger = tr.querySelector([
+          'td:nth-of-type(10) div.btn-group button.btn-success:nth-of-type(2) i',
+          'td:nth-of-type(10) div.btn-group button.btn-success:nth-of-type(2)',
+          'td:nth-of-type(10) div.btn-group button.btn-success i.fa-edit',
+          'td:nth-of-type(10) div.btn-group button.btn-success i.fa.fa-edit',
+          'td:nth-of-type(10) div.btn-group button.btn-success',
+          'td:nth-of-type(10) button.btn-success i',
+          'td:nth-of-type(10) button.btn-success',
+          'button.btn-sm.btn-success:nth-of-type(2) i',
+          'button.btn-sm.btn-success:nth-of-type(2)',
+          'button.btn-success i.fa-edit',
+          'button.btn-success i.fa.fa-edit',
+          'button.btn-success [class*="fa-edit"]',
+          'button.btn-success',
+          'i.fa-edit',
+          'i.fa.fa-edit',
+          'td:nth-child(2) i[class*="fa-envelope"]',
+          'td:nth-child(2) [class*="fa-envelope"]'
+        ].join(', '));
+      }
 
-      return elements;
+      if (trigger && isVisible(trigger)) {
+        items.push({ row: tr, trigger: trigger });
+      }
     }
+
+    // Fallback: ถ้าหาตามโครงสร้าง tr td ไม่เจอ ให้ค้นหาจาก element ตรงๆ
+    if (items.length === 0) {
+      let elements = [];
+      if (triggerMode === 'clock') {
+        elements = Array.from(document.querySelectorAll('i.fa-clock-o, [class*="fa-clock"]'));
+      } else {
+        elements = Array.from(document.querySelectorAll([
+          'button.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit',
+          'button.btn-sm.btn-success:nth-of-type(2)',
+          'button.btn-success i.fa-edit',
+          'button.btn-success i.fa.fa-edit',
+          'button.btn-success [class*="fa-edit"]',
+          'button.btn-success',
+          'i.fa-edit',
+          'i.fa.fa-edit',
+          'i[class*="fa-envelope"]'
+        ].join(', ')));
+      }
+      for (const el of elements) {
+        if (isVisible(el) && !el.closest('[data-saraban-done="true"]')) {
+          items.push({ row: el.closest('tr') || el, trigger: el });
+        }
+      }
+    }
+
+    return items;
   }
 
-  function waitForElement(selector, timeout = 5000) {
+  function waitForElement(selector, timeout = 6000) {
     return new Promise((resolve) => {
       const el = document.querySelector(selector);
       if (isVisible(el)) { resolve(el); return; }
@@ -109,11 +133,25 @@ if (!window.__sarabanToolsLoaded) {
   }
 
   function findPidNganLabel() {
-    return Array.from(document.querySelectorAll('label, span, div'))
+    // 1. Selector ตรงตาม r.json: div.col-sm-4:nth-of-type(1) > label
+    const specific = document.querySelector('div.col-sm-4:nth-of-type(1) > label, div.col-sm-4 > label');
+    if (specific && isVisible(specific) && specific.textContent.includes('ปิดงาน')) {
+      return specific;
+    }
+
+    // 2. ค้นหา label ที่มีข้อความ "ปิดงาน"
+    const labels = Array.from(document.querySelectorAll('label')).filter(isVisible);
+    const exact = labels.find(l => l.textContent.trim() === 'ปิดงาน');
+    if (exact) return exact;
+    const partial = labels.find(l => l.textContent.includes('ปิดงาน'));
+    if (partial) return partial;
+
+    // 3. Fallback หาจาก span, div, a, button
+    return Array.from(document.querySelectorAll('span, div, a, button'))
       .find(l => {
         const text = l.textContent.trim();
         return (text === 'ปิดงาน' || text.includes('ปิดงาน')) && isVisible(l);
-      });
+      }) || null;
   }
 
   function findCheckbox() {
@@ -124,7 +162,7 @@ if (!window.__sarabanToolsLoaded) {
       .filter(cb => isVisible(cb));
     if (modalCheckboxes.length > 0) return modalCheckboxes[0];
 
-    return byId;
+    return byId || null;
   }
 
   function closeModal() {
@@ -138,8 +176,13 @@ if (!window.__sarabanToolsLoaded) {
   async function runAuto(maxRows, delayMs, triggerMode) {
     stopAutoFlag = false;
 
-    let triggers = findTriggers(triggerMode);
-    if (triggers.length === 0) {
+    // ล้าง flag แถวที่ทำเสร็จแล้วก่อนหน้า
+    document.querySelectorAll('[data-saraban-done]').forEach(el => {
+      delete el.dataset.sarabanDone;
+    });
+
+    const initialItems = findRowTriggers(triggerMode);
+    if (initialItems.length === 0) {
       const btnName = triggerMode === 'clock' ? 'ระหว่างดำเนินการ (ปุ่มนาฬิกา)' : 'รอลงทะเบียน (ปุ่มแก้ไข)';
       chrome.runtime.sendMessage({
         action: 'error',
@@ -148,11 +191,12 @@ if (!window.__sarabanToolsLoaded) {
       return;
     }
 
-    const limit = maxRows === 0 ? triggers.length : Math.min(maxRows, triggers.length);
+    const totalAvailable = initialItems.length;
+    const limit = maxRows === 0 ? totalAvailable : Math.min(maxRows, totalAvailable);
 
     chrome.runtime.sendMessage({
       action: 'progress', current: 0, total: limit,
-      message: `พบ ${triggers.length} แถว จะประมวลผล ${limit} แถว`
+      message: `พบ ${totalAvailable} แถว จะประมวลผล ${limit} แถว`
     }).catch(() => { });
 
     let processed = 0;
@@ -160,67 +204,72 @@ if (!window.__sarabanToolsLoaded) {
     for (let i = 0; i < limit; i++) {
       if (stopAutoFlag) break;
 
-      // ตรวจสอบ element ใน DOM ถ้าหายไปให้ query ใหม่
-      let el = triggers[i];
-      if (!el || !document.body.contains(el) || !isVisible(el)) {
-        triggers = findTriggers(triggerMode);
-        el = triggers[i] || triggers[0];
-      }
-
-      if (!el) {
+      const currentItems = findRowTriggers(triggerMode);
+      if (currentItems.length === 0) {
         chrome.runtime.sendMessage({
           action: 'progress', current: processed, total: limit,
-          message: `ไม่พบแถวที่ ${i + 1} เพิ่มเติม — สิ้นสุดการทำงาน`, warning: true
+          message: `ไม่มีแถวคงเหลือในหน้านี้ — ดำเนินการสำเร็จ ${processed} แถว`, warning: true
         }).catch(() => { });
         break;
       }
 
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const item = currentItems[0];
+      const rowEl = item.row;
+      const triggerEl = item.trigger;
+
+      triggerEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
       await sleep(200);
 
-      // คลิกปุ่ม/ไอคอน
-      const clickable = el.closest('button, a') || el;
+      // คลิกปุ่ม/ไอคอน (ตาม r.json: tr > td:nth-of-type(10) > div.btn-group > button.btn-success:nth-of-type(2) > i.fa-edit)
+      const clickable = triggerEl.closest('button, a') || triggerEl;
       clickable.click();
-      if (el !== clickable) {
-        try { el.click(); } catch (_) { }
+      if (triggerEl !== clickable) {
+        try { triggerEl.click(); } catch (_) { }
       }
 
-      // รอ checkbox หรือ label ปิดงาน ใน modal
-      let checkbox = await waitForElement('#basic_checkbox_1', 5000);
-      if (!checkbox) {
+      // รอ checkbox หรือ label ปิดงาน ใน modal (ตาม r.json: div.col-sm-4:nth-of-type(1) > label / #basic_checkbox_1)
+      let readyEl = await waitForElement('#basic_checkbox_1, div.col-sm-4 > label', 6000);
+      if (!readyEl) {
         // เผื่อเป็น flow ที่ต้องกดรับต้นฉบับก่อน
         const recvBtn = findReceiveDocButton();
         if (recvBtn) {
           recvBtn.click();
-          checkbox = await waitForElement('#basic_checkbox_1', 4000);
+          await sleep(300);
+          readyEl = await waitForElement('#basic_checkbox_1, div.col-sm-4 > label', 4000);
         }
       }
 
-      if (!checkbox) {
-        const label = findPidNganLabel();
-        if (!label) {
-          chrome.runtime.sendMessage({
-            action: 'progress', current: processed, total: limit,
-            message: `แถว ${i + 1}: modal ไม่เปิด — ข้าม`, warning: true
-          }).catch(() => { });
-          continue;
-        }
-      }
-
-      await sleep(150);
-
-      // คลิก label "ปิดงาน" (ถ้าเจอ)
       const label = findPidNganLabel();
-      if (label) {
-        label.click();
+      const checkbox = findCheckbox();
+
+      if (!label && !checkbox) {
+        if (rowEl && rowEl.dataset) rowEl.dataset.sarabanDone = 'true';
+        chrome.runtime.sendMessage({
+          action: 'progress', current: processed, total: limit,
+          message: `แถวที่ ${i + 1}: ไม่พบตัวเลือกปิดงาน — ข้าม`, warning: true
+        }).catch(() => { });
+        continue;
       }
 
-      // ตรวจสอบ checkbox ว่าถูกติ๊กแล้วหรือไม่ ถ้ายังให้ติ๊กโดยตรง
+      await sleep(200);
+
+      // คลิก label "ปิดงาน" (ตาม r.json: div.col-sm-4:nth-of-type(1) > label)
+      if (label) {
+        label.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        label.click();
+        await sleep(150);
+      }
+
+      // ตรวจสอบ checkbox ว่าถูกติ๊กแล้วหรือไม่ ถ้ายังให้ติ๊กโดยตรง (ตาม r.json: #basic_checkbox_1)
       const targetCheckbox = findCheckbox();
       if (targetCheckbox && !targetCheckbox.checked) {
         targetCheckbox.click();
         targetCheckbox.checked = true;
         targetCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      if (rowEl && rowEl.dataset) {
+        rowEl.dataset.sarabanDone = 'true';
       }
 
       processed++;
@@ -229,13 +278,15 @@ if (!window.__sarabanToolsLoaded) {
         message: `ปิดงานแถวที่ ${i + 1} เรียบร้อย`
       }).catch(() => { });
 
-      await sleep(400);
+      // รอ modal ปิดลงอัตโนมัติหลังบันทึก
+      await waitForGone('#basic_checkbox_1', 4000);
+      await sleep(300);
 
-      // ปิด modal ถ้ายังค้างอยู่
+      // ตรวจสอบว่า modal ยังค้างอยู่หรือไม่ ถ้ายังค้างค่อยปิด
       const stillOpen = document.querySelector('#basic_checkbox_1');
       if (isVisible(stillOpen)) {
         closeModal();
-        await waitForGone('#basic_checkbox_1', 3000);
+        await waitForGone('#basic_checkbox_1', 2000);
       }
 
       if (i < limit - 1 && !stopAutoFlag) await sleep(delayMs);

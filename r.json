@@ -1,0 +1,95 @@
+{
+  "recorded_at": "2026-08-21T07:14:44.615Z",
+  "total_events": 6,
+  "summary": {
+    "navigate": 0,
+    "click": 6,
+    "input": 0
+  },
+  "events": [
+    {
+      "ariaLabel": null,
+      "id": null,
+      "name": null,
+      "role": null,
+      "selector": "tr.odd:nth-of-type(1) > td:nth-of-type(10) > div.btn-group > button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit",
+      "tabId": 616564564,
+      "tag": "i",
+      "text": "",
+      "time": 3645,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:03"
+    },
+    {
+      "ariaLabel": null,
+      "id": null,
+      "name": null,
+      "role": null,
+      "selector": "div.col-sm-4:nth-of-type(1) > label",
+      "tabId": 616564564,
+      "tag": "label",
+      "text": "ปิดงาน",
+      "time": 9399,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:09"
+    },
+    {
+      "ariaLabel": null,
+      "id": "basic_checkbox_1",
+      "name": null,
+      "role": null,
+      "selector": "#basic_checkbox_1",
+      "tabId": 616564564,
+      "tag": "input",
+      "text": "",
+      "time": 9402,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:09"
+    },
+    {
+      "ariaLabel": null,
+      "id": null,
+      "name": null,
+      "role": null,
+      "selector": "tr.odd:nth-of-type(1) > td:nth-of-type(10) > div.btn-group > button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit",
+      "tabId": 616564564,
+      "tag": "i",
+      "text": "",
+      "time": 14209,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:14"
+    },
+    {
+      "ariaLabel": null,
+      "id": null,
+      "name": null,
+      "role": null,
+      "selector": "div.col-sm-4:nth-of-type(1) > label",
+      "tabId": 616564564,
+      "tag": "label",
+      "text": "ปิดงาน",
+      "time": 19560,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:19"
+    },
+    {
+      "ariaLabel": null,
+      "id": "basic_checkbox_1",
+      "name": null,
+      "role": null,
+      "selector": "#basic_checkbox_1",
+      "tabId": 616564564,
+      "tag": "input",
+      "text": "",
+      "time": 19563,
+      "type": "click",
+      "url": "https://edoc.nbtc.go.th/saraban/index.html#",
+      "time_formatted": "0:19"
+    }
+  ]
+}
