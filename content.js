@@ -212,8 +212,8 @@ if (!window.__sarabanToolsLoaded) {
       // 2. รอให้ Modal โหลดขึ้นมา (ตาม r.json: div.col-sm-4:nth-of-type(1) > label / #basic_checkbox_1)
       let readyEl = await waitForElement('div.col-sm-4 > label, #basic_checkbox_1', 7000);
 
-      // หน่วงเวลาเล็กน้อยเพื่อให้ระบบสารบรรณโหลดข้อมูลและเตรียมสถานะใน Modal ให้พร้อม
-      await sleep(600);
+      // หน่วงเวลาเพื่อให้ระบบสารบรรณโหลดข้อมูลและเตรียมสถานะใน Modal ให้พร้อมสมบูรณ์
+      await sleep(1000);
 
       const label = findPidNganLabel();
       const checkbox = findCheckbox();
