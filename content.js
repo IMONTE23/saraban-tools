@@ -209,17 +209,20 @@ if (!window.__sarabanToolsLoaded) {
       const triggerEl = item.trigger;
 
       triggerEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      await sleep(150);
+      await sleep(350);
 
-      // 1. คลิกปุ่มแก้ไขในตาราง (ตาม r.json: tr.odd:nth-of-type(1) > td:nth-of-type(10) > div.btn-group > button.btn.btn-sm.btn-success:nth-of-type(2) > i.fa.fa-edit)
+      // 1. คลิกปุ่มแก้ไข / นาฬิกาในตาราง
       const clickable = triggerEl.closest('button, a') || triggerEl;
       clickable.click();
+      if (triggerEl !== clickable) {
+        try { triggerEl.click(); } catch (_) { }
+      }
 
-      // 2. รอให้ Modal โหลดขึ้นมา (ตาม r.json: div.col-sm-4:nth-of-type(1) > label / #basic_checkbox_1)
-      let readyEl = await waitForElement('div.col-sm-4 > label, #basic_checkbox_1', 7000);
+      // 2. รอให้ Modal โหลดขึ้นมา
+      let readyEl = await waitForElement('div.col-sm-4 > label, #basic_checkbox_1', 8000);
 
-      // หน่วงเวลาเพื่อให้ระบบสารบรรณโหลดข้อมูลและเตรียมสถานะใน Modal ให้พร้อมสมบูรณ์
-      await sleep(1000);
+      // หน่วงเวลา 1500ms เพื่อให้ระบบสารบรรณโหลดข้อมูลและออกเลข/เตรียมสถานะใน Modal ให้พร้อมสมบูรณ์
+      await sleep(1500);
 
       const label = findPidNganLabel();
       const checkbox = findCheckbox();
@@ -233,19 +236,21 @@ if (!window.__sarabanToolsLoaded) {
         continue;
       }
 
-      // 3. คลิกที่ Label "ปิดงาน" (ตาม r.json: div.col-sm-4:nth-of-type(1) > label)
+      // 3. คลิกที่ Label "ปิดงาน"
       if (label) {
         label.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        await sleep(300);
         label.click();
-        await sleep(200);
+        await sleep(400);
       }
 
-      // 4. ตรวจสอบ Checkbox #basic_checkbox_1 (ตาม r.json: #basic_checkbox_1)
+      // 4. ตรวจสอบ Checkbox #basic_checkbox_1
       const targetCheckbox = findCheckbox();
       if (targetCheckbox && !targetCheckbox.checked) {
         targetCheckbox.click();
         targetCheckbox.checked = true;
         targetCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+        await sleep(300);
       }
 
       if (rowEl && rowEl.dataset) {
@@ -259,8 +264,8 @@ if (!window.__sarabanToolsLoaded) {
       }).catch(() => { });
 
       // 5. รอระบบประมวลผลบันทึกและ Modal ปิดลงอัตโนมัติ
-      await waitForGone('#basic_checkbox_1', 4000);
-      await sleep(400);
+      await waitForGone('#basic_checkbox_1', 5000);
+      await sleep(600);
 
       if (i < limit - 1 && !stopAutoFlag) await sleep(delayMs);
     }
