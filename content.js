@@ -20,12 +20,18 @@ if (!window.__sarabanToolsLoaded) {
     for (const tr of rows) {
       let trigger = null;
       if (triggerMode === 'clock') {
+        // โหมดระหว่างดำเนินการ: ตาม r2.json (td:nth-of-type(3) > i.fa.fa-clock-o)
         trigger = tr.querySelector([
-          'td:nth-child(3) i.fa-clock-o',
+          'td:nth-of-type(3) > i.fa.fa-clock-o',
+          'td:nth-of-type(3) > i.fa-clock-o',
+          'td:nth-of-type(3) i.fa.fa-clock-o',
+          'td:nth-of-type(3) i.fa-clock-o',
           'td:nth-child(3) i.fa.fa-clock-o',
+          'td:nth-child(3) i.fa-clock-o',
           'td:nth-child(3) [class*="fa-clock"]',
-          'i.fa-clock-o',
+          'td:nth-of-type(3) [class*="fa-clock"]',
           'i.fa.fa-clock-o',
+          'i.fa-clock-o',
           '[class*="fa-clock"]'
         ].join(', '));
       } else {
