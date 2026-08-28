@@ -305,7 +305,7 @@ if (!window.__sarabanToolsLoaded) {
       // 1. เลื่อนจอมาที่ปุ่มและคลิกเปิด Modal (คลิกเพียงครั้งเดียว ป้องกัน Double Click Bug)
       const clickable = triggerEl.closest('button, a') || triggerEl;
       clickable.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      await sleep(400);
+      await sleep(200);
       clickable.click();
 
       // 2. รอให้ Modal และตัวเลือกปิดงานปรากฏ (สูงสุด 12 วินาที)
@@ -313,7 +313,7 @@ if (!window.__sarabanToolsLoaded) {
 
       // รอโหลด Overlay / Spinner ใน Modal ให้เสร็จ
       await waitForLoadingToFinish(5000);
-      await sleep(2000);
+      await sleep(800);
 
       const { label, checkbox } = findPidNganElements();
 
@@ -332,9 +332,9 @@ if (!window.__sarabanToolsLoaded) {
       // 3. คลิกที่ Label "ปิดงาน"
       if (label) {
         label.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        await sleep(300);
+        await sleep(150);
         label.click();
-        await sleep(500);
+        await sleep(250);
       }
 
       // 4. ตรวจสอบ Checkbox #basic_checkbox_1 หากยังไม่ได้ติ๊ก ให้คลิกและส่ง event
@@ -344,7 +344,7 @@ if (!window.__sarabanToolsLoaded) {
         activeCb.checked = true;
         activeCb.dispatchEvent(new Event('change', { bubbles: true }));
         activeCb.dispatchEvent(new Event('input', { bubbles: true }));
-        await sleep(400);
+        await sleep(200);
       }
 
       // ทำเครื่องหมายว่าแถวนี้ทำแล้ว
@@ -363,10 +363,10 @@ if (!window.__sarabanToolsLoaded) {
       // 5. รอระบบประมวลผลบันทึกและ Modal ปิดลงอัตโนมัติ
       await waitForModalClose(7000);
       await waitForLoadingToFinish(4000);
-      await sleep(1000);
+      await sleep(300);
 
       if (i < limit - 1 && !stopAutoFlag) {
-        await sleep(Math.max(delayMs, 1000));
+        await sleep(Math.max(delayMs, 300));
       }
     }
 
