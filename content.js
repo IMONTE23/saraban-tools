@@ -108,7 +108,7 @@ if (!window.__sarabanToolsLoaded) {
   // ============================================================
   // รอ Loading / Spinner ของระบบสารบรรณให้เสร็จสิ้น
   // ============================================================
-  async function waitForLoadingToFinish(timeout = 6000) {
+  async function waitForLoadingToFinish(timeout = 1000) {
     const loaderSelectors = [
       '.blockUI', '.loading', '.loading-spinner', '.pace', '.overlay',
       'div[class*="loading"]', 'div[class*="spinner"]', 'div[class*="backdrop"]'
@@ -280,13 +280,13 @@ if (!window.__sarabanToolsLoaded) {
       if (stopAutoFlag) break;
 
       // รอให้หน้าเว็บและตารางโหลดเสร็จก่อนเริ่มแถวใหม่
-      await waitForLoadingToFinish(4000);
+      await waitForLoadingToFinish(3000);
 
       let currentItems = findRowTriggers(triggerMode);
       if (currentItems.length === 0) {
         // รอเผื่อตารางกำลัง Reload ข้อมูลผ่าน AJAX
-        await sleep(1500);
-        await waitForLoadingToFinish(3000);
+        await sleep(800);
+        await waitForLoadingToFinish(2000);
         currentItems = findRowTriggers(triggerMode);
       }
 
@@ -304,16 +304,16 @@ if (!window.__sarabanToolsLoaded) {
 
       // 1. เลื่อนจอมาที่ปุ่มและคลิกเปิด Modal (คลิกเพียงครั้งเดียว ป้องกัน Double Click Bug)
       const clickable = triggerEl.closest('button, a') || triggerEl;
-      clickable.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      await sleep(200);
+      clickable.scrollIntoView({ block: 'center', behavior: 'instant' });
+      await sleep(100);
       clickable.click();
 
-      // 2. รอให้ Modal และตัวเลือกปิดงานปรากฏ (สูงสุด 12 วินาที)
-      const readyState = await waitForPidNganReady(12000);
+      // 2. รอให้ Modal และตัวเลือกปิดงานปรากฏ (สูงสุด 8 วินาที)
+      const readyState = await waitForPidNganReady(8000);
 
       // รอโหลด Overlay / Spinner ใน Modal ให้เสร็จ
-      await waitForLoadingToFinish(5000);
-      await sleep(800);
+      await waitForLoadingToFinish(3000);
+      await sleep(200);
 
       const { label, checkbox } = findPidNganElements();
 
@@ -331,10 +331,10 @@ if (!window.__sarabanToolsLoaded) {
 
       // 3. คลิกที่ Label "ปิดงาน"
       if (label) {
-        label.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        await sleep(150);
+        label.scrollIntoView({ block: 'center', behavior: 'instant' });
+        await sleep(80);
         label.click();
-        await sleep(250);
+        await sleep(100);
       }
 
       // 4. ตรวจสอบ Checkbox #basic_checkbox_1 หากยังไม่ได้ติ๊ก ให้คลิกและส่ง event
@@ -344,7 +344,7 @@ if (!window.__sarabanToolsLoaded) {
         activeCb.checked = true;
         activeCb.dispatchEvent(new Event('change', { bubbles: true }));
         activeCb.dispatchEvent(new Event('input', { bubbles: true }));
-        await sleep(200);
+        await sleep(80);
       }
 
       // ทำเครื่องหมายว่าแถวนี้ทำแล้ว
@@ -361,9 +361,8 @@ if (!window.__sarabanToolsLoaded) {
       }).catch(() => { });
 
       // 5. รอระบบประมวลผลบันทึกและ Modal ปิดลงอัตโนมัติ
-      await waitForModalClose(7000);
-      await waitForLoadingToFinish(4000);
-      await sleep(300);
+      await waitForModalClose(5000);
+      await waitForLoadingToFinish(2500);
 
       if (i < limit - 1 && !stopAutoFlag) {
         await sleep(Math.max(delayMs, 300));
