@@ -1,26 +1,35 @@
 // popup.js — Saraban Tools (auto only)
 
+// ──────────────────────────────────────────────────────────
+// ⚙️ Configuration: กำหนดเวอร์ชันที่แสดงบน UI ได้ที่นี่
+// ──────────────────────────────────────────────────────────
+const APP_VERSION = 'V.3';
+
 // ── DOM refs ──────────────────────────────────────────────
-const btnStart      = document.getElementById('btn-start');
-const btnStop       = document.getElementById('btn-stop');
-const autoTrigger   = document.getElementById('auto-trigger'); // hidden input
-const tabButtons    = document.querySelectorAll('.tab-btn');
-const inputRows     = document.getElementById('input-rows');
-const chkAll        = document.getElementById('chk-all');
-const inputDelay    = document.getElementById('input-delay');
-const statusPill    = document.getElementById('status-pill');
-const progressSec   = document.getElementById('progress-section');
+const appVersion = document.getElementById('app-version');
+const btnStart = document.getElementById('btn-start');
+const btnStop = document.getElementById('btn-stop');
+const autoTrigger = document.getElementById('auto-trigger'); // hidden input
+const tabButtons = document.querySelectorAll('.tab-btn');
+const inputRows = document.getElementById('input-rows');
+const chkAll = document.getElementById('chk-all');
+const inputDelay = document.getElementById('input-delay');
+const statusPill = document.getElementById('status-pill');
+const progressSec = document.getElementById('progress-section');
 const progressLabel = document.getElementById('progress-label');
 const progressCount = document.getElementById('progress-count');
-const progressFill  = document.getElementById('progress-fill');
-const logList       = document.getElementById('log-list');
-const logCount      = document.getElementById('log-count');
+const progressFill = document.getElementById('progress-fill');
+const logList = document.getElementById('log-list');
+const logCount = document.getElementById('log-count');
 
 // ── State ─────────────────────────────────────────────────
 let isRunning = false;
 let logEntries = 0;
 
 // ── Init ──────────────────────────────────────────────────
+if (appVersion) {
+  appVersion.textContent = APP_VERSION;
+}
 loadSettings();
 
 // ── Tab bar logic ─────────────────────────────────────────
@@ -82,7 +91,7 @@ btnStart.addEventListener('click', async () => {
 btnStop.addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab) {
-    chrome.tabs.sendMessage(tab.id, { action: 'stopAuto' }).catch(() => {});
+    chrome.tabs.sendMessage(tab.id, { action: 'stopAuto' }).catch(() => { });
   }
   addLog('warn', '⏹', 'ผู้ใช้กดหยุดการทำงาน');
   setRunning(false);
@@ -94,7 +103,7 @@ chrome.runtime.onMessage.addListener((msg) => {
     const pct = msg.total > 0 ? Math.round((msg.current / msg.total) * 100) : 0;
     progressLabel.textContent = msg.message || `กำลังประมวลผล...`;
     progressCount.textContent = `${msg.current}/${msg.total}`;
-    progressFill.style.width  = `${pct}%`;
+    progressFill.style.width = `${pct}%`;
 
     if (msg.current > 0) {
       const type = msg.warning ? 'warn' : 'success';
@@ -106,7 +115,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.action === 'done') {
     addLog('success', '🎉', `เสร็จสิ้น! ปิดงาน ${msg.processed}/${msg.total} แถว`);
     progressLabel.textContent = `เสร็จสิ้น — ปิดงาน ${msg.processed} แถว`;
-    progressFill.style.width  = '100%';
+    progressFill.style.width = '100%';
     setRunning(false);
   }
 
@@ -122,7 +131,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 function setRunning(active) {
   isRunning = active;
   btnStart.style.display = active ? 'none' : 'flex';
-  btnStop.style.display  = active ? 'flex' : 'none';
+  btnStop.style.display = active ? 'flex' : 'none';
   progressSec.classList.toggle('visible', active || progressFill.style.width !== '0%');
 
   statusPill.textContent = active ? '▶ Running' : 'Idle';
@@ -152,15 +161,15 @@ function clearLog() {
 }
 
 function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function saveSettings() {
   chrome.storage.local.set({
     sarabanAutoTrigger: autoTrigger.value,
-    sarabanAutoRows:  parseInt(inputRows.value) || 10,
+    sarabanAutoRows: parseInt(inputRows.value) || 10,
     sarabanAutoDelay: parseInt(inputDelay.value) || 800,
-    sarabanAutoAll:   chkAll.checked
+    sarabanAutoAll: chkAll.checked
   });
 }
 
@@ -173,9 +182,9 @@ function loadSettings() {
         b.classList.toggle('active', b.dataset.value === data.sarabanAutoTrigger);
       });
     }
-    if (data.sarabanAutoRows)  inputRows.value     = data.sarabanAutoRows;
-    if (data.sarabanAutoDelay) inputDelay.value    = data.sarabanAutoDelay;
-    if (data.sarabanAutoAll)   chkAll.checked      = data.sarabanAutoAll;
+    if (data.sarabanAutoRows) inputRows.value = data.sarabanAutoRows;
+    if (data.sarabanAutoDelay) inputDelay.value = data.sarabanAutoDelay;
+    if (data.sarabanAutoAll) chkAll.checked = data.sarabanAutoAll;
     inputRows.disabled = chkAll.checked;
   });
 }
